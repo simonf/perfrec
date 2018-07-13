@@ -1,0 +1,159 @@
+---
+swagger: "2.0"
+info:
+  description: "An API that allows an external agent to recommend a change to an OnDemand\n\
+    service. In this version, only bandwidth changes are supported.\nNote that this\
+    \ API requires HTTP headers to be set for all calls. See the\nswagger JSON file\
+    \ \"securityDefinitions\" section for more information\n"
+  version: "1.0.0"
+  title: "OnDemand Performance Recommendation API"
+  contact:
+    email: "simon.farrell@colt.net"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "virtserver.swaggerhub.com"
+basePath: "/simonfarrell/OnDemandPerformanceRecommendation/1.0.0"
+tags:
+- name: "standard"
+  description: "Operations available to all"
+schemes:
+- "https"
+security:
+- appID: []
+  appHash: []
+paths:
+  /performance/status:
+    get:
+      tags:
+      - "standard"
+      summary: "checks API availability"
+      description: "Send a GET request with your API token to check both that the\
+        \ token is recognised and that the API is up and running\n"
+      operationId: "checkstatus"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "token is valid and API is available"
+          schema:
+            type: "object"
+        403:
+          description: "Missing or invalid signature"
+        404:
+          description: "API not available"
+      x-swagger-router-controller: "Standard"
+  /performance_recommendation/{recId}:
+    get:
+      tags:
+      - "standard"
+      summary: "get the state of a previously submitted recommendation"
+      operationId: "getRecommendationStatus"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "recId"
+        in: "path"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "details of the recommendation"
+          schema:
+            $ref: "#/definitions/RecommendationState"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Recommendation not found"
+      x-swagger-router-controller: "Standard"
+  /performance_recommendation:
+    post:
+      tags:
+      - "standard"
+      summary: "submits a recommended action"
+      description: "Adds a recommended action for a specified service"
+      operationId: "submitRecommendation"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "recommendation"
+        description: "Recommendation being made"
+        required: false
+        schema:
+          $ref: "#/definitions/Recommendation"
+      responses:
+        201:
+          description: "Recommendation accepted"
+        400:
+          description: "invalid input, object invalid"
+        403:
+          description: "API signature missing or incorrect"
+        404:
+          description: "invalid service ID"
+        409:
+          description: "an existing item already exists"
+      x-swagger-router-controller: "Standard"
+securityDefinitions:
+  appID:
+    description: "the application ID supplied by Colt"
+    type: "apiKey"
+    name: "X-APP-ID"
+    in: "header"
+  appHash:
+    description: "an SHA-256 hash signature of the request path. For example, for\
+      \ a GET request to https://host.colt.net/performance/recommendation/1234, sign\
+      \ the string \"/performance/recommendation/1234\" with 'mysecret' key and place\
+      \ the output in is header"
+    type: "apiKey"
+    name: "X-APP-HASH"
+    in: "header"
+definitions:
+  Status:
+    type: "object"
+    required:
+    - "status"
+    properties:
+      status:
+        type: "string"
+        example: "OK"
+  Recommendation:
+    type: "object"
+    required:
+    - "action"
+    - "service_id"
+    properties:
+      service_id:
+        type: "string"
+        example: "A1234"
+      action:
+        type: "string"
+        example: "Increase Bandwidth, Decrease Bandwidth"
+      bandwidth_change:
+        type: "integer"
+        format: "int32"
+        minimum: -100.0
+        maximum: 100.0
+    example:
+      bandwidth_change: -83
+      service_id: "A1234"
+      action: "Increase Bandwidth, Decrease Bandwidth"
+  RecommendationState:
+    type: "object"
+    required:
+    - "state"
+    properties:
+      state:
+        $ref: "#/definitions/RecommendationStateValue"
+    example:
+      state: {}
+  RecommendationStateValue:
+    type: "string"
+    enum:
+    - "APPLIED"
+    - "REJECTED"
+    - "PENDING"
+    - "FAILED"

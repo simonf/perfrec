@@ -1,0 +1,21 @@
+{
+  "name": "ondemand-performance-recommendation-api",
+  "version": "1.0.0",
+  "description": "An API that allows an external agent to recommend a change to an OnDemand service. In this version, only bandwidth changes are supported. Note that this API requires HTTP headers to be set for all calls. See the swagger JSON file \"securityDefinitions\" section for more information ",
+  "main": "index.js",
+  "scripts": {
+    "prestart": "npm install",
+    "start": "node index.js"
+  },
+  "keywords": [
+    "swagger"
+  ],
+  "license": "Unlicense",
+  "private": true,
+  "dependencies": {
+    "connect": "^3.2.0",
+    "crypto-js": "^3.1.9-1",
+    "js-yaml": "^3.3.0",
+    "swagger-tools": "0.10.1"
+  }
+}
