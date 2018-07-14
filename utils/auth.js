@@ -33,22 +33,23 @@ var getKeyForAppId = function(appid) {
 }
 
 var validateRequest = exports.validateRequest = function(request) {
-	var key = getKeyForAppId(getAppid(request))
-	var sig = getSignature(request)
-	if(!!key && !!sig) {
-		console.log('Got key and sig')
-		var tgt = computeDigest(request, key)	
-		if(tgt !== sig) {
-			console.log('Signature ' + sig + ' does not match expectation: ' + tgt)
-			return false
-		} else {
-			console.log('Sig ok')
-			return true
-		}
-	} else {
-		if(!key) console.log('Missing key')
-		if(!sig) console.log('Missing signature')
-		console.log('Returning false')
-		return false
-	}
+    var key = getKeyForAppId(getAppid(request))
+    var sig = getSignature(request)
+    if(!key) {
+	console.log('Missing key')
+	return 404
+    }
+    if(!sig) {
+	console.log('Missing signature')
+	return 403
+    }
+    console.log('Got key and sig')
+    var tgt = computeDigest(request, key)	
+    if(tgt !== sig) {
+	console.log('Signature ' + sig + ' does not match expectation: ' + tgt)
+	return 403
+    } else {
+	console.log('Sig ok')
+	return 200
+    }
 }

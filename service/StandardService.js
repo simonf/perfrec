@@ -1,5 +1,5 @@
 'use strict';
-
+const recdb = require('./Recommendation.js')
 
 /**
  * checks API availability
@@ -43,11 +43,18 @@ exports.getRecommendationStatus = function(recId) {
  * Adds a recommended action for a specified service
  *
  * recommendation Recommendation Recommendation being made (optional)
- * no response value expected for this operation
+ * returns RecommendationResponse
  **/
 exports.submitRecommendation = function(recommendation) {
-  return new Promise(function(resolve, reject) {
-    resolve();
-  });
-}
+    return new Promise(function(resolve, reject) {
+	var valid= recdb.validateRecommendation(recommendation)
+	if(valid == 200) {
+	    recid = recdb.saveRecommendation(recommendation)
+	    retval = '{ "recommendation_id" : "' + recid + '"}'
+	    resolve(retval)
+	} else {
+	    reject(valid);
+	}
+    });
 
+}

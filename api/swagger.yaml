@@ -88,6 +88,8 @@ paths:
       responses:
         201:
           description: "Recommendation accepted"
+          schema:
+            $ref: "#/definitions/RecommendationResponse"
         400:
           description: "invalid input, object invalid"
         403:
@@ -99,17 +101,17 @@ paths:
       x-swagger-router-controller: "Standard"
 securityDefinitions:
   appID:
-    description: "the application ID supplied by Colt"
+    description: "the application ID supplied by the API owner"
     type: "apiKey"
-    name: "X-APP-ID"
+    name: "x-app-id"
     in: "header"
   appHash:
-    description: "an SHA-256 hash signature of the request path. For example, for\
-      \ a GET request to https://host.colt.net/performance/recommendation/1234, sign\
-      \ the string \"/performance/recommendation/1234\" with 'mysecret' key and place\
-      \ the output in is header"
+    description: "a Base64-encoded SHA-256 hash signature of\nthe request path, \n\
+      e.g. /performance/recommendation/A1234\nObtain a secret key by discussion\n\
+      with the API owner. \nSee https://www.jokecamp.com/blog/examples-of-creating-base64-hashes-using-hmac-sha256-in-different-languages.\
+      \ \n"
     type: "apiKey"
-    name: "X-APP-HASH"
+    name: "x-app-hash"
     in: "header"
 definitions:
   Status:
@@ -131,7 +133,9 @@ definitions:
         example: "A1234"
       action:
         type: "string"
-        example: "Increase Bandwidth, Decrease Bandwidth"
+        enum:
+        - "INCREASE_BANDWIDTH"
+        - "DECREASE_BANDWIDTH"
       bandwidth_change:
         type: "integer"
         format: "int32"
@@ -140,7 +144,14 @@ definitions:
     example:
       bandwidth_change: -83
       service_id: "A1234"
-      action: "Increase Bandwidth, Decrease Bandwidth"
+      action: "INCREASE_BANDWIDTH"
+  RecommendationResponse:
+    type: "object"
+    properties:
+      recommendation_id:
+        type: "string"
+    example:
+      recommendation_id: "recommendation_id"
   RecommendationState:
     type: "object"
     required:
@@ -153,7 +164,7 @@ definitions:
   RecommendationStateValue:
     type: "string"
     enum:
-    - "APPLIED"
+    - "SUCCESS"
     - "REJECTED"
     - "PENDING"
     - "FAILED"
