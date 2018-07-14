@@ -44,7 +44,7 @@ paths:
         404:
           description: "API not available"
       x-swagger-router-controller: "Standard"
-  /performance_recommendation/{recId}:
+  /performance/recommendation/{recId}:
     get:
       tags:
       - "standard"
@@ -67,7 +67,7 @@ paths:
         404:
           description: "Recommendation not found"
       x-swagger-router-controller: "Standard"
-  /performance_recommendation:
+  /performance/recommendation:
     post:
       tags:
       - "standard"
@@ -97,7 +97,7 @@ paths:
         404:
           description: "invalid service ID"
         409:
-          description: "an existing item already exists"
+          description: "a recommendation for this service is already pending"
       x-swagger-router-controller: "Standard"
 securityDefinitions:
   appID:
@@ -139,10 +139,10 @@ definitions:
       bandwidth_change:
         type: "integer"
         format: "int32"
-        minimum: -100.0
-        maximum: 100.0
+        minimum: 100.0
+        maximum: 1000.0
     example:
-      bandwidth_change: -83
+      bandwidth_change: 172
       service_id: "A1234"
       action: "INCREASE_BANDWIDTH"
   RecommendationResponse:

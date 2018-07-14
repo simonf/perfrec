@@ -24,17 +24,13 @@ exports.checkstatus = function() {
  * returns RecommendationState
  **/
 exports.getRecommendationStatus = function(recId) {
-  return new Promise(function(resolve, reject) {
-    var examples = {};
-    examples['application/json'] = {
-  "state" : { }
-};
-    if (Object.keys(examples).length > 0) {
-      resolve(examples[Object.keys(examples)[0]]);
-    } else {
-      resolve();
-    }
-  });
+    return new Promise(function(resolve, reject) {
+	console.log('in service checking for '+recId)
+	var status = recdb.getRecommendationStatus(recId)
+	console.log('DB said status is '+status)
+	if(status === 'NOTFOUND') reject(404)
+	else resolve('{"state": "'+status+'"}');
+    });
 }
 
 
@@ -47,12 +43,18 @@ exports.getRecommendationStatus = function(recId) {
  **/
 exports.submitRecommendation = function(recommendation) {
     return new Promise(function(resolve, reject) {
+	console.log(recommendation)
 	var valid= recdb.validateRecommendation(recommendation)
 	if(valid == 200) {
-	    recid = recdb.saveRecommendation(recommendation)
-	    retval = '{ "recommendation_id" : "' + recid + '"}'
+	    console.log('Validated ok')
+	    var recid = recdb.saveRecommendation(recommendation)
+	    console.log('Got recommendation id '+recid)
+	    var retval = '{ "recommendation_id" : "' + recid + '"}'
+	    recdb.showState()
 	    resolve(retval)
 	} else {
+	    console.log('Failed validation')
+	    recdb.showState()
 	    reject(valid);
 	}
     });
