@@ -10,9 +10,6 @@ const recdb = require('./Recommendation.js')
 exports.checkstatus = function() {
   return new Promise(function(resolve, reject) {
       resolve('{ "status": "ok"}')
-//    } else {
-//      reject(403);
-//    }
   });
 }
 

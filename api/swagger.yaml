@@ -41,8 +41,12 @@ paths:
             type: "object"
         403:
           description: "Missing or invalid signature"
+          schema:
+            $ref: "#/definitions/Error"
         404:
           description: "API not available"
+          schema:
+            $ref: "#/definitions/Error"
       x-swagger-router-controller: "Standard"
   /performance/recommendation/{recId}:
     get:
@@ -64,8 +68,12 @@ paths:
             $ref: "#/definitions/RecommendationState"
         403:
           description: "Missing or invalid signature"
+          schema:
+            $ref: "#/definitions/Error"
         404:
           description: "Recommendation not found"
+          schema:
+            $ref: "#/definitions/Error"
       x-swagger-router-controller: "Standard"
   /performance/recommendation:
     post:
@@ -92,12 +100,20 @@ paths:
             $ref: "#/definitions/RecommendationResponse"
         400:
           description: "invalid input, object invalid"
+          schema:
+            $ref: "#/definitions/Error"
         403:
           description: "API signature missing or incorrect"
+          schema:
+            $ref: "#/definitions/Error"
         404:
           description: "invalid service ID"
+          schema:
+            $ref: "#/definitions/Error"
         409:
           description: "a recommendation for this service is already pending"
+          schema:
+            $ref: "#/definitions/Error"
       x-swagger-router-controller: "Standard"
 securityDefinitions:
   appID:
@@ -172,3 +188,10 @@ definitions:
     - "REJECTED"
     - "PENDING"
     - "FAILED"
+  Error:
+    type: "object"
+    properties:
+      code:
+        type: "integer"
+      message:
+        type: "string"

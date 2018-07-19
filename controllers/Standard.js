@@ -7,28 +7,28 @@ var Standard = require('../service/StandardService');
 module.exports.checkstatus = function checkstatus (req, res, next) {
     var valid = auth.validateRequest(req)
     if(valid == 403)
-	utils.writeJson(res, utils.respondWithCode(403,'{ "status": "Bad or missing signature"}'));
+	utils.writeError(res, 403, 'Bad or missing signature');
     else if(valid == 404)
-	utils.writeJson(res, utils.respondWithCode(403,'{ "status": "Not recognised"}'));
+	utils.writeError(res, 403,'API Key not recognised');
     else if(valid==200) {
 	Standard.checkstatus()
 	    .then(function (response) {
 		utils.writeJson(res, response);
     	    })
     	    .catch(function (err) {
-      		utils.writeJson(res, utils.respondWithCode(err, '{}'));
+      		utils.writeError(res, 500, err);
     	    });
     } else {
-	utils.writeJson(res, utils.respondWithCode(500,'{ "status": "Unknown error"}'));
+	utils.writeError(res, 500, 'Unknown error');
     }
 };
 
 module.exports.getRecommendationStatus = function getRecommendationStatus (req, res, next) {
     var valid = auth.validateRequest(req)
     if(valid == 403)
-	utils.writeJson(res, utils.respondWithCode(403,'{ "status": "Bad or missing signature"}'));
+	utils.writeError(res, 403,'Bad or missing signature');
     else if(valid == 404)
-	utils.writeJson(res, utils.respondWithCode(403,'{ "status": "Not recognised"}'));
+	utils.writeError(res, 403,'API key not recognised"');
     else if(valid==200) {
 	var recId = req.swagger.params['recId'].value;
 	console.log('Checking status for '+recId)
@@ -39,7 +39,7 @@ module.exports.getRecommendationStatus = function getRecommendationStatus (req, 
 	    })
 	    .catch(function (code) {
 		console.log('fail '+code)
-		utils.writeJson(res, utils.respondWithCode(code,'{}'));
+		utils.writeError(res, code,'Not found');
 	    });
     }
 };
@@ -47,9 +47,9 @@ module.exports.getRecommendationStatus = function getRecommendationStatus (req, 
 module.exports.submitRecommendation = function submitRecommendation (req, res, next) {
     var valid = auth.validateRequest(req)
     if(valid == 403)
-	utils.writeJson(res, utils.respondWithCode(403,'{ "status": "Bad or missing signature"}'));
+	utils.writeError(res, 403,'Bad or missing signature');
     else if(valid == 404)
-	utils.writeJson(res, utils.respondWithCode(403,'{ "status": "Not recognised"}'));
+	utils.writeError(res, 403,'API key not recognised');
     else if(valid==200) {
 	var recommendation = req.swagger.params['recommendation'].value;
 	Standard.submitRecommendation(recommendation)
@@ -57,7 +57,7 @@ module.exports.submitRecommendation = function submitRecommendation (req, res, n
 		utils.writeJson(res, response);
 	    })
 	    .catch(function (code) {
-		utils.writeJson(res, utils.respondWithCode(code,'{}'));
+		utils.writeError(res, code,'Recommendation was not saved');
 	    });
     }
 };

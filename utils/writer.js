@@ -3,6 +3,13 @@ var ResponsePayload = function(code, payload) {
   this.payload = payload;
 }
 
+exports.writeError = function(res, code, message) {
+    var payload = JSON.stringify({code: code, message: message}, null, 2);
+    res.writeHead(code, {'Content-Type': 'application/json'});
+    res.end(payload);
+
+}
+    
 exports.respondWithCode = function(code, payload) {
   return new ResponsePayload(code, payload);
 }
