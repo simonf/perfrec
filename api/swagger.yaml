@@ -62,8 +62,8 @@ paths:
           description: "details of the recommendation"
           schema:
             $ref: "#/definitions/RecommendationState"
-        400:
-          description: "Invalid ID supplied"
+        403:
+          description: "Missing or invalid signature"
         404:
           description: "Recommendation not found"
       x-swagger-router-controller: "Standard"
@@ -103,15 +103,19 @@ securityDefinitions:
   appID:
     description: "the application ID supplied by the API owner"
     type: "apiKey"
-    name: "x-app-id"
+    name: "x-colt-app-id"
     in: "header"
   appHash:
-    description: "a Base64-encoded SHA-256 hash signature of\nthe request path, \n\
-      e.g. /performance/recommendation/A1234\nObtain a secret key by discussion\n\
-      with the API owner. \nSee https://www.jokecamp.com/blog/examples-of-creating-base64-hashes-using-hmac-sha256-in-different-languages.\
+    description: "a Base64-encoded SHA-256 hash signature of a payload calculated\
+      \ by concatenating\n- the GMT datestamp formatted as DDMMYYYY\n- the HTTP verb\
+      \ (e.g. GET)\n- the request path. \nFor example if the API GET \n/OnDemandPerformanceRecommendation/1.0.0\n\
+      /performance/status was made on 19th July 2018\nthe concatenated string would\
+      \ be\n19072018GET/OnDemandPerformanceRecommendation/1.0.0/performance/status\
+      \ \nand a signature calculated with a secret key of 'colt' would be \nnz/ju8M0c1aZxODYXYEbAX7uNH3gJVHoE1Glm8OjV1I=\n\
+      \nObtain a secret key by discussion\nwith the API owner.\n\nSee https://www.jokecamp.com/blog/examples-of-creating-base64-hashes-using-hmac-sha256-in-different-languages.\
       \ \n"
     type: "apiKey"
-    name: "x-app-hash"
+    name: "x-colt-app-sig"
     in: "header"
 definitions:
   Status:
