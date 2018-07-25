@@ -14,17 +14,13 @@ var getPath = function(request) {
     return u.path
 }
 
-var getBody = function(request) {
-    
-}
-
 var calcPreviousHour = function(d,m,y,h) {
     if(h == 0) {
 	return calcPreviousDay(d, m, y) + '23'
     } else return formatDate(d,m,y,h-1)
 }
 
-var calcPreviousHour = function(d,m,y,h) {
+var calcNextHour = function(d,m,y,h) {
     if(h == 23) {
 	return calcNextDay(d,m,y) + '00'
     } else return formatDate(d,m,y,h+1)
@@ -56,7 +52,7 @@ var calcNextDay = function(d, m, y) {
 var formatDate = function(day, month, yr, hr) {
     var m = '' + month
     var d = '' + day
-    var h = '' + hour
+    var h = '' + hr
     if(m.length < 2) m = '0' + m
     if(d.length < 2) d = '0' + d
     if(h.length < 2) h = '0' + h
@@ -68,30 +64,41 @@ var getDatestamps = function() {
     var d = now.getDate()
     var m = now.getMonth() + 1
     var yr = now.getFullYear()
-    var retval = [formatDate(d,m,yr)]
     var hr = now.getHours()
 
+    var retval = [formatDate(d,m,yr, hr)]
+
     var min = now.getMinutes()
-    if(min >= 60 - MINUTE_WINDOW) retval.append(calcNextHour(d ,m, yr, hr))
-    if(min <= MINUTE_WINDOW) 	retval.append(calcPreviousHour(d, m, yr, hr))
+    if(min >= 60 - MINUTE_WINDOW) retval.push(calcNextHour(d ,m, yr, hr))
+    if(min <= MINUTE_WINDOW) 	retval.push(calcPreviousHour(d, m, yr, hr))
 
     return retval	
 }
 
-var checkSig = function(sig, request, key) {
+var computeBodySig = function(body, key) {
+    if(typeof body == 'undefined' || body.length < 1) body =''
+    console.log('Body: ' + body)
+    console.log('Body length: ' + body.length)
+    var sig = crypto.HmacSHA256(body, key)
+    var sigb64 = Base64.stringify(sig)
+    console.log('Sig: ' + sigb64)
+    return sigb64
+}
+
+var checkSig = function(sig, request, body, key) {
     console.log('Validating '+sig)
     var ds = getDatestamps()
+    var path = getPath(request)
+    var body_sig = computeBodySig(body, key)
     return ds.some(function(ds) {
-	var mysig = computeDigest(ds, request, key)
+	var mysig = computeDigest(ds, path, body_sig, key)
 	console.log('Checking '+mysig)
 	return sig == mysig
     })
 }
     
     
-var computeDigest = function(datestamp, request, key) {
-    var path = getPath(request)
-    var body_sig = crypto.HmacSHA256(getBody(request), key)
+var computeDigest = function(datestamp, path, body_sig, key) {
     var tgt = datestamp+path+body_sig
     var digest = crypto.HmacSHA256(tgt, key)
     var auth_header = Base64.stringify(digest)
@@ -112,6 +119,31 @@ var getKeyForAppId = function(appid) {
 }
 
 var validateRequest = exports.validateRequest = function(request) {
+    return new Promise((resolve, reject) => {
+	console.log(request.swagger.params['recommendation'])
+	var body = ''
+	var payload = request.swagger.params['recommendation']
+	if( typeof payload !== 'undefined') {
+	    body = JSON.stringify(payload.value)
+	    var code = do_validation(request, body)
+	    if(code != 200) reject(code)
+	    else resolve(200)
+	} else {
+	    request.on('data', function() {
+		console.log('Read event')
+		body += r.read()
+	    })
+	    request.on('end', function() {
+		console.log('End event')
+		var code = do_validation(request, body)
+		if(code != 200) reject(code)
+		else resolve(200)
+	    })
+	}
+    })
+}
+
+var do_validation = function(request, body, prom) {
     var key = getKeyForAppId(getAppid(request))
     var sig = getSignature(request)
     if(!key) {
@@ -123,7 +155,7 @@ var validateRequest = exports.validateRequest = function(request) {
 	return 403
     }
     console.log('Got key and sig')
-    if(!checkSig(sig, request, key)) {
+    if(!checkSig(sig, request, body, key)) {
 	console.log('Signature ' + sig + ' does not match expectation')
 	return 403
     } else {
