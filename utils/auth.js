@@ -2,6 +2,8 @@ const Url = require('url')
 const crypto = require('crypto-js')
 const Base64 = crypto.enc.Base64
 
+const MINUTE_WINDOW = 5
+
 var appkeys = {
     'simon': 'simonrocks',
     'test': 'test'
@@ -12,8 +14,20 @@ var getPath = function(request) {
     return u.path
 }
 
-var getMethod = function(request) {
-    return request.method.toUpperCase()
+var getBody = function(request) {
+    
+}
+
+var calcPreviousHour = function(d,m,y,h) {
+    if(h == 0) {
+	return calcPreviousDay(d, m, y) + '23'
+    } else return formatDate(d,m,y,h-1)
+}
+
+var calcPreviousHour = function(d,m,y,h) {
+    if(h == 23) {
+	return calcNextDay(d,m,y) + '00'
+    } else return formatDate(d,m,y,h+1)
 }
 
 var calcPreviousDay = function (d, m, y) {
@@ -26,7 +40,7 @@ var calcPreviousDay = function (d, m, y) {
     return formatDate(d-1,m,y)
 }
 
-var calNextDay = function(d, m, y) {
+var calcNextDay = function(d, m, y) {
     if(m == 2) {
 	if(y % 4 > 0 && d == 28) return formatDate(1,3,y)
 	if(y % 4 == 0 && d == 29) return formatDate(1,3,y)
@@ -39,12 +53,14 @@ var calNextDay = function(d, m, y) {
     return formatDate(d+1, m, y)
 }
 
-var formatDate = function(day,month,yr) {
+var formatDate = function(day, month, yr, hr) {
     var m = '' + month
     var d = '' + day
-    if(m.length < 2) m = '0'+m
-    if(d.length < 2) d = '0'+d
-    return(d+m+yr)
+    var h = '' + hour
+    if(m.length < 2) m = '0' + m
+    if(d.length < 2) d = '0' + d
+    if(h.length < 2) h = '0' + h
+    return(yr+m+d+h) 
 }
 
 var getDatestamps = function() {
@@ -53,11 +69,11 @@ var getDatestamps = function() {
     var m = now.getMonth() + 1
     var yr = now.getFullYear()
     var retval = [formatDate(d,m,yr)]
-
     var hr = now.getHours()
+
     var min = now.getMinutes()
-    if(hr == 23 && min >= 55) 	retval.append(calcNextDay(d,m.yr))
-    if(hr == 0 && min <= 5) 	retval.append(calcPreviousDay(d,m,yr))
+    if(min >= 60 - MINUTE_WINDOW) retval.append(calcNextHour(d ,m, yr, hr))
+    if(min <= MINUTE_WINDOW) 	retval.append(calcPreviousHour(d, m, yr, hr))
 
     return retval	
 }
@@ -75,8 +91,8 @@ var checkSig = function(sig, request, key) {
     
 var computeDigest = function(datestamp, request, key) {
     var path = getPath(request)
-    var method = getMethod(request)
-    var tgt = datestamp+method+path
+    var body_sig = crypto.HmacSHA256(getBody(request), key)
+    var tgt = datestamp+path+body_sig
     var digest = crypto.HmacSHA256(tgt, key)
     var auth_header = Base64.stringify(digest)
     console.log('Path ' + tgt + ' has signature ' + auth_header + ' for key ' + key)
