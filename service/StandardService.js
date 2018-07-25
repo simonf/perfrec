@@ -9,7 +9,7 @@ const recdb = require('./Recommendation.js')
  **/
 exports.checkstatus = function() {
   return new Promise(function(resolve, reject) {
-      resolve('{ "status": "ok"}')
+      resolve('{"status": "OK"}')
   });
 }
 
@@ -25,7 +25,10 @@ exports.getRecommendationStatus = function(recId) {
 	console.log('in service checking for '+recId)
 	var status = recdb.getRecommendationStatus(recId)
 	console.log('DB said status is '+status)
-	if(status === 'NOTFOUND') reject(404)
+	if(status === 'NOTFOUND') {
+	    console.log('Rejecting')
+	    reject({status: 404, message: 'Unknown recommendation id: '+recId})
+	}
 	else resolve('{"state": "'+status+'"}');
     });
 }
@@ -52,7 +55,7 @@ exports.submitRecommendation = function(recommendation) {
 	} else {
 	    console.log('Failed validation')
 	    recdb.showState()
-	    reject(valid);
+	    reject({status: valid, message: 'Malformed recommendation'});
 	}
     });
 

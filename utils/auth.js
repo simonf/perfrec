@@ -75,37 +75,27 @@ var getDatestamps = function() {
     return retval	
 }
 
-var computeBodySig = function(body, key) {
+var computeStringSig = exports.calcHMAC = function(body, key) {
     if(typeof body == 'undefined' || body.length < 1) body =''
-    console.log('Body: ' + body)
-    console.log('Body length: ' + body.length)
+    console.log('Encrypting: ' + body)
     var sig = crypto.HmacSHA256(body, key)
     var sigb64 = Base64.stringify(sig)
     console.log('Sig: ' + sigb64)
     return sigb64
 }
 
-var checkSig = function(sig, request, body, key) {
+var checkSig = function(sig, request, body_sig, key) {
     console.log('Validating '+sig)
     var ds = getDatestamps()
     var path = getPath(request)
-    var body_sig = computeBodySig(body, key)
     return ds.some(function(ds) {
-	var mysig = computeDigest(ds, path, body_sig, key)
+	var mysig = computeStringSig(ds + path + body_sig, key)
 	console.log('Checking '+mysig)
 	return sig == mysig
     })
 }
     
     
-var computeDigest = function(datestamp, path, body_sig, key) {
-    var tgt = datestamp+path+body_sig
-    var digest = crypto.HmacSHA256(tgt, key)
-    var auth_header = Base64.stringify(digest)
-    console.log('Path ' + tgt + ' has signature ' + auth_header + ' for key ' + key)
-    return auth_header
-}
-
 var getAppid = function(request) {
 	return request.headers['x-colt-app-id']	
 }
@@ -118,48 +108,31 @@ var getKeyForAppId = function(appid) {
 	return typeof appkeys[appid] === 'undefined' ? null : appkeys[appid]
 }
 
-var validateRequest = exports.validateRequest = function(request) {
+var validateRequest = exports.validateRequest = function(request, body) {
     return new Promise((resolve, reject) => {
-	console.log(request.swagger.params['recommendation'])
-	var body = ''
-	var payload = request.swagger.params['recommendation']
-	if( typeof payload !== 'undefined') {
-	    body = JSON.stringify(payload.value)
-	    var code = do_validation(request, body)
-	    if(code != 200) reject(code)
-	    else resolve(200)
+	var key = getKeyForAppId(getAppid(request))
+	var sig = getSignature(request)
+	if(!key) reject({status: 404, message: 'Missing key'})
+	if(!sig) reject({status: 402, message: 'Missing signature'})
+    
+	console.log('Got key and sig')
+
+	var signed_body = ''
+	if(typeof body === 'object') {
+	    console.log('Body is an object')
+	    console.log('As string: '+JSON.stringify(body))
+	    signed_body = computeStringSig(JSON.stringify(body), key)
 	} else {
-	    request.on('data', function() {
-		console.log('Read event')
-		body += r.read()
-	    })
-	    request.on('end', function() {
-		console.log('End event')
-		var code = do_validation(request, body)
-		if(code != 200) reject(code)
-		else resolve(200)
-	    })
+	    console.log('Body is a string')
+	    signed_body = computeStringSig(''+body, key)
+	}
+
+	if(!checkSig(sig, request, signed_body, key)) {
+	    console.log('Signature ' + sig + ' does not match expectation')
+	    reject({status: 403, message: 'Bad signature'})
+	} else {
+	    console.log('Sig ok')
+	    resolve()
 	}
     })
-}
-
-var do_validation = function(request, body, prom) {
-    var key = getKeyForAppId(getAppid(request))
-    var sig = getSignature(request)
-    if(!key) {
-	console.log('Missing key')
-	return 404
-    }
-    if(!sig) {
-	console.log('Missing signature')
-	return 403
-    }
-    console.log('Got key and sig')
-    if(!checkSig(sig, request, body, key)) {
-	console.log('Signature ' + sig + ' does not match expectation')
-	return 403
-    } else {
-	console.log('Sig ok')
-	return 200
-    }
 }

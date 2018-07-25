@@ -3,9 +3,9 @@ var ResponsePayload = function(code, payload) {
   this.payload = payload;
 }
 
-exports.writeError = function(res, code, message) {
-    var payload = JSON.stringify({code: code, message: message}, null, 2);
-    res.writeHead(code, {'Content-Type': 'application/json'});
+exports.writeError = function(res, err) {
+    var payload = JSON.stringify(err, null, 2);
+    res.writeHead(err.status, {'Content-Type': 'application/json'});
     res.end(payload);
 
 }

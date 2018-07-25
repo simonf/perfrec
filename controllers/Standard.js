@@ -4,63 +4,54 @@ var utils = require('../utils/writer.js');
 var auth = require('../utils/auth.js');
 var Standard = require('../service/StandardService');
 
+var canonicaliseBody = function(body) {
+    return JSON.stringify(JSON.parse(body))
+}
+
 module.exports.checkstatus = function checkstatus (req, res, next) {
-    auth.validateRequest(req).then(function() {
-	Standard.checkstatus()
-	    .then(function (response) {
-		utils.writeJson(res, response);
-    	    })
-    	    .catch(function (err) {
-      		utils.writeError(res, 500, err);
-    	    });
-    }).catch(function(valid) {
-	console.log(valid)
-	if(valid == 403)
-	    utils.writeError(res, 403, 'Bad or missing signature');
-	else if(valid == 404)
-	    utils.writeError(res, 403,'API Key not recognised');
-	else utils.writeError(res, 500, 'Unknown error');
+    auth.validateRequest(req, '').then(function() {
+	Standard.checkstatus().then(function (response) {
+	    utils.writeJson(res, response);
+    	});
+    }).catch(function (err) {
+      	utils.writeError(res, err);
     })
 };
 
+
+
 module.exports.getRecommendationStatus = function getRecommendationStatus (req, res, next) {
-    auth.validateRequest(req).then(function() {
-	var recId = req.swagger.params['recId'].value;
-	console.log('Checking status for '+recId)
-	Standard.getRecommendationStatus(recId)
-	    .then(function (response) {
+    var recId = req.params['recId']
+    if(typeof recId === 'undefined') utils.writeError({status: 400, message: 'Missing recommendation id'})
+    console.log('Checking status for '+recId)
+
+    auth.validateRequest(req, '')
+	.then(function() {
+	    Standard.getRecommendationStatus(recId).then(function (response) {
 		console.log('ok')
 		utils.writeJson(res, response);
+	    }).catch(function(err) {
+		console.log('problem')
+		utils.writeError(res, err)
 	    })
-	    .catch(function (code) {
-		console.log('fail '+code)
-		utils.writeError(res, code,'Not found');
-	    });
-    }).catch(function(valid) {
-	if(valid == 403)
-	    utils.writeError(res, 403, 'Bad or missing signature');
-	else if(valid == 404)
-	    utils.writeError(res, 403,'API Key not recognised');
-	else utils.writeError(res, 500, 'Unknown error');
-    })
+	}).catch(function(err) {
+	    console.log('oops')
+	    utils.writeError(res, err);
+	})
 };
 
 module.exports.submitRecommendation = function submitRecommendation (req, res, next) {
     console.log('submit')
-    auth.validateRequest(req).then(function() {
-	var recommendation = req.swagger.params['recommendation'].value;
+    var body = req.body
+    console.log(body)
+    if(typeof body === 'undefined') body = ''
+    auth.validateRequest(req, body).then(function() {
+	var recommendation = body
 	Standard.submitRecommendation(recommendation)
 	    .then(function (response) {
 		utils.writeJson(res, response);
 	    })
-	    .catch(function (code) {
-		utils.writeError(res, code,'Recommendation was not saved');
-	    });
-    }).catch(function(valid) {
-	if(valid == 403)
-	    utils.writeError(res, 403, 'Bad or missing signature');
-	else if(valid == 404)
-	    utils.writeError(res, 403,'API Key not recognised');
-	else utils.writeError(res, 500, 'Unknown error');
+    }).catch(function(err) {
+	utils.writeError(res, err);
     })
 };
