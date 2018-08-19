@@ -31,6 +31,7 @@ exports.getRecommendationStatus = function(recId) {
 	var the_recommendation = null
 	logger.info('Checking status for '+recId)
 	return models.Recommendation.findById(parseInt(recId)).then((rec) => {
+		if (!rec) throw {status: 404, message: 'Recommendation '+recId + ' not found'}
 		the_recommendation = rec
 		return request_api.getRequestStatus(rec.request)
 	}).then((status) => {

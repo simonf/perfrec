@@ -7,7 +7,7 @@ var logger = null
 
 if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
   logger = winston.createLogger({
-    level: 'info',
+    level: 'debug',
     format: winston.format.simple(),
     transports: [ console ]
   })

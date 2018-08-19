@@ -10,7 +10,8 @@ var pad2 = function(ival) {
 }
 
 module.exports.calcHMAC = function calcHMAC (req, res, next) {
-  var plaintext = ''
+	var plaintext = ''
+	logger.debug(util.inspect(req.body))
 	if (typeof req.body.plaintext !== 'undefined') {
 		if (typeof req.body.key !== 'undefined') {
 			var plaintext = req.body.plaintext
