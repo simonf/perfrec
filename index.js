@@ -2,12 +2,10 @@
 
 var express = require('express'),
     bodyParser = require('body-parser'),
-    logger = require('winston'),
+    logger = require('./utils/log'),
     hmac = require('./controllers/Hmac'),
     standard = require('./controllers/Standard'),
     models = require('./models')
-
-logger.add(new logger.transports.Console)
 
 var app = express()
 var serverPort = 8081;

@@ -1,12 +1,10 @@
 'use strict';
 
-var utils = require('../utils/writer.js');
-var auth = require('../utils/auth.js');
-var Standard = require('../service/StandardService');
+var utils = require('../utils/writer.js'),
+	auth = require('../utils/auth.js'),
+	Standard = require('../service/StandardService'),
+	logger = require('../utils/log')
 
-var canonicaliseBody = function(body) {
-    return JSON.stringify(JSON.parse(body))
-}
 
 module.exports.checkstatus = function checkstatus (req, res, next) {
     auth.validateRequest(req, '').then(function() {
@@ -23,23 +21,21 @@ module.exports.getRecommendationStatus = function getRecommendationStatus (req, 
 	if(typeof recId === 'undefined') 
 		utils.writeError({status: 400, message: 'Missing recommendation id'})
 	else {
-		console.log('Checking status for '+recId)
+		logger.info('Checking status for '+recId)
 		auth.validateRequest(req, '').then(function() {
 			return Standard.getRecommendationStatus(recId)
 		}).then(function (response) {
-			console.log('ok: '+response)
 			utils.writeJson(res, response)
 		}).catch(function(err) {
-			console.log('oops')
 			utils.writeError(res, err);
 		})
 	}
 }
 
 module.exports.submitRecommendation = function submitRecommendation (req, res, next) {
-    console.log('submit')
+    logger.info('submit')
     var body = req.body
-    console.log(body)
+    logger.debug(body)
     if(typeof body === 'undefined') {
 		utils.writeError(res,{status: 400, message: 'Bad or missing recommendation'})
 	} else {

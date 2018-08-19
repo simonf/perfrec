@@ -1,3 +1,5 @@
+var logger = require('../utils/log')
+
 const MIN_BANDWIDTH = 0
 const MAX_BANDWIDTH = 1000
 
@@ -12,10 +14,10 @@ var service_api = {
         return new Promise((resolve, reject) => {
             let svc = this.services[service_id]
             if (typeof svc !== 'undefined') {
-                console.log('Service found. Resolving')
+                logger.debug('Service found. Resolving')
                 resolve({id: service_id, bandwidth: svc.bw})
             } else {
-                console.log('Unrecognised service. Rejecting')
+                logger.debug('Unrecognised service. Rejecting')
                 reject({status: 404, message: 'Service not found'}) 
             } 
         })
@@ -24,7 +26,7 @@ var service_api = {
         return this.getService(service_id).then((svc) => {
             let target_bw = svc.bandwidth + bw_change
             if (target_bw < MIN_BANDWIDTH || target_bw > MAX_BANDWIDTH) {
-                console.log('Bandwidth outside limits. Throwing error')
+                logger.info('Bandwidth outside limits. Throwing error')
                 throw {status: 400, message: 'Invalid bandwidth change'}
             }
             return target_bw
@@ -33,6 +35,6 @@ var service_api = {
 }
 
 module.exports.calcBandwidthFlex = function(service_id, bw_change) {
-    console.log('Validating bandwidth flex')
+    logger.info('Validating bandwidth flex')
     return service_api.calculateTargetBandwidth(service_id, bw_change)
 }

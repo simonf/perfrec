@@ -1,11 +1,13 @@
+var logger = require('../utils/log')
+
 var request_id = 3
 
 module.exports.getRequestStatus = function(request_id) {
   return new Promise((resolve, reject) => {
-    console.log('Checking request with id '+request_id)
+    logger.info('Checking request with id '+request_id)
     try {
       if (parseInt(request_id) % 2 == 0) {
-        console.log('Returning SUCCESS')
+        logger.debug('Returning SUCCESS')
         resolve('SUCCESS')
       } else {
         resolve('FAILED')

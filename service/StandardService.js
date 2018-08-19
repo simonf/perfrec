@@ -1,8 +1,9 @@
 'use strict';
-const util = require('util')
-var models = require('../models')
-const request_api = require('./RequestAPI.js')
-const service_api = require('./ServiceAPI.js')
+const util = require('util'),
+			request_api = require('./RequestAPI.js'),
+			service_api = require('./ServiceAPI.js')
+var models = require('../models'),
+		logger = require('../utils/log')
 
 const INPROGRESS = 'INPROGRESS'
 
@@ -28,14 +29,14 @@ exports.checkstatus = function() {
 exports.getRecommendationStatus = function(recId) {
 	var stat = ''
 	var the_recommendation = null
-	console.log('Checking status for '+recId)
+	logger.info('Checking status for '+recId)
 	return models.Recommendation.findById(parseInt(recId)).then((rec) => {
 		the_recommendation = rec
 		return request_api.getRequestStatus(rec.request)
 	}).then((status) => {
 		stat = status
-		console.log('DB said status is '+stat)
-		console.log('Updating recommendation status')
+		console.debug('DB said status is '+stat)
+		console.debug('Updating recommendation status')
 		return the_recommendation.update({status: stat})
 	}).then(()=>{
 		return {state: stat}

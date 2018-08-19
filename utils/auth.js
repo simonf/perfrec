@@ -1,6 +1,7 @@
 const Url = require('url')
 const crypto = require('crypto-js')
 const Base64 = crypto.enc.Base64
+var logger = require('./log')
 
 const MINUTE_WINDOW = 5
 
@@ -77,20 +78,20 @@ var getDatestamps = function() {
 
 var computeStringSig = exports.calcHMAC = function(body, key) {
     if(typeof body == 'undefined' || body.length < 1) body =''
-    console.log('Encrypting: ' + body)
+    logger.info('Encrypting: ' + body)
     var sig = crypto.HmacSHA256(body, key)
     var sigb64 = Base64.stringify(sig)
-    console.log('Sig: ' + sigb64)
+    logger.info('Sig: ' + sigb64)
     return sigb64
 }
 
 var checkSig = function(sig, request, body_sig, key) {
-    console.log('Validating '+sig)
+    logger.info('Validating '+sig)
     var ds = getDatestamps()
     var path = getPath(request)
     return ds.some(function(ds) {
 	var mysig = computeStringSig(ds + path + body_sig, key)
-	console.log('Checking '+mysig)
+	logger.info('Checking '+mysig)
 	return sig == mysig
     })
 }
@@ -110,11 +111,11 @@ var getKeyForAppId = function(appid) {
 
 var signBody = exports.signBody = function(body, key) {
 	if(typeof body === 'object') {
-	    console.log('Body is an object')
-	    console.log('As string: '+JSON.stringify(body))
+	    logger.debug('Body is an object')
+	    logger.debug('As string: '+JSON.stringify(body))
 	    return computeStringSig(JSON.stringify(body), key)
 	} else {
-	    console.log('Body is a string')
+	    logger.debug('Body is a string')
 	    return computeStringSig(''+body, key)
     }
 }
@@ -126,15 +127,15 @@ var validateRequest = exports.validateRequest = function(request, body) {
 	if(!key) reject({status: 404, message: 'Missing key'})
 	if(!sig) reject({status: 402, message: 'Missing signature'})
     
-	console.log('Got key and sig')
+	logger.debug('Got key and sig')
 
 	var signed_body = signBody(body, key)
 
 	if(!checkSig(sig, request, signed_body, key)) {
-	    console.log('Signature ' + sig + ' does not match expectation')
+	    logger.info('Signature ' + sig + ' does not match expectation')
 	    reject({status: 403, message: 'Bad signature'})
 	} else {
-	    console.log('Sig ok')
+	    logger.info('Sig ok')
 	    resolve()
 	}
     })
