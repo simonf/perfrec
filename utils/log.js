@@ -5,7 +5,7 @@ var file = new winston.transports.File({ filename: 'error.log' })
 
 var logger = null
 
-if (!process.end.NODE_ENV || process.env.NODE_ENV !== 'production') {
+if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
   logger = winston.createLogger({
     level: 'info',
     format: winston.format.simple(),
