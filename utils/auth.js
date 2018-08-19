@@ -108,6 +108,17 @@ var getKeyForAppId = function(appid) {
 	return typeof appkeys[appid] === 'undefined' ? null : appkeys[appid]
 }
 
+var signBody = exports.signBody = function(body, key) {
+	if(typeof body === 'object') {
+	    console.log('Body is an object')
+	    console.log('As string: '+JSON.stringify(body))
+	    return computeStringSig(JSON.stringify(body), key)
+	} else {
+	    console.log('Body is a string')
+	    return computeStringSig(''+body, key)
+    }
+}
+
 var validateRequest = exports.validateRequest = function(request, body) {
     return new Promise((resolve, reject) => {
 	var key = getKeyForAppId(getAppid(request))
@@ -117,15 +128,7 @@ var validateRequest = exports.validateRequest = function(request, body) {
     
 	console.log('Got key and sig')
 
-	var signed_body = ''
-	if(typeof body === 'object') {
-	    console.log('Body is an object')
-	    console.log('As string: '+JSON.stringify(body))
-	    signed_body = computeStringSig(JSON.stringify(body), key)
-	} else {
-	    console.log('Body is a string')
-	    signed_body = computeStringSig(''+body, key)
-	}
+	var signed_body = signBody(body, key)
 
 	if(!checkSig(sig, request, signed_body, key)) {
 	    console.log('Signature ' + sig + ' does not match expectation')

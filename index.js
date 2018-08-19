@@ -2,8 +2,12 @@
 
 var express = require('express'),
     bodyParser = require('body-parser'),
+    logger = require('winston'),
     hmac = require('./controllers/Hmac'),
-    standard = require('./controllers/Standard')
+    standard = require('./controllers/Standard'),
+    models = require('./models')
+
+logger.add(new logger.transports.Console)
 
 var app = express()
 var serverPort = 8081;
@@ -18,8 +22,12 @@ app.post('/recommendation', standard.submitRecommendation)
 
 app.post('/sign', hmac.calcHMAC)
 
-  // Start the server
-  app.listen(serverPort, host, function () {
-    console.log('Your server is listening on port %d (http://localhost:%d)', serverPort, serverPort);
+// initialise thee database
+//require('./service/recommendation_db').init()
 
-  });
+// Start the server 
+models.sequelize.sync().then(() => {
+  app.listen(serverPort, host, function () {
+    logger.info('Your server is listening on port %d (http://localhost:%d)', serverPort, serverPort);
+  })  
+})

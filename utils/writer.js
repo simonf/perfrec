@@ -4,9 +4,11 @@ var ResponsePayload = function(code, payload) {
 }
 
 exports.writeError = function(res, err) {
-    var payload = JSON.stringify(err, null, 2);
-    res.writeHead(err.status, {'Content-Type': 'application/json'});
-    res.end(payload);
+  if(!err.status) err.status = 400
+  if(!err.message) err.message = 'Unknown error'
+  var payload = JSON.stringify(err, null, 2);
+  res.writeHead(err.status, {'Content-Type': 'application/json'});
+  res.end(payload);
 
 }
     
