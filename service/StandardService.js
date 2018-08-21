@@ -26,13 +26,13 @@ exports.checkstatus = function() {
  * recId String 
  * returns RecommendationState
  **/
-exports.getRecommendationStatus = function(custid, recId) {
+exports.getRecommendationStatus = function(user, recId) {
 	var stat = ''
 	var the_recommendation = null
 	logger.info('Checking status for '+recId)
 	return models.Recommendation.findById(parseInt(recId)).then((rec) => {
 		if (!rec) throw {status: 404, message: 'Recommendation '+recId + ' not found'}
-		if (rec.custid != custid) throw {status: 403, message: 'This recommendation was not made by you'}
+		if (rec.custid != user.custid) throw {status: 403, message: 'This recommendation was not made by you'}
 		the_recommendation = rec
 		return request_api.getRequestStatus(rec.request)
 	}).then((status) => {
@@ -76,7 +76,7 @@ var checkExistingRecommendations = function(service_id) {
  * recommendation Recommendation Recommendation being made (optional)
  * returns RecommendationResponse
  **/
-exports.submitRecommendation = function(custid, recommendation) {
+exports.submitRecommendation = function(user, recommendation) {
 	var tbw = 999
 	return checkExistingRecommendations(recommendation.service_id).then(()=>{
 		logger.debug('Calculating svc bw')
@@ -84,14 +84,14 @@ exports.submitRecommendation = function(custid, recommendation) {
 	}).then((target_bw) => {
 		tbw = target_bw
 		logger.debug('Placing request')
-		return request_api.flexBandwidth(custid, recommendation.service_id, target_bw)
+		return request_api.flexBandwidth(user, recommendation.service_id, target_bw)
 	}).then((request_id) => {
 		logger.debug('Saving recommendation')
-		let db_recommendation = {custid: custid,
-														 service: recommendation.service_id, 
-														 bandwidth: ''+tbw, 
-														 request: ''+request_id,
-														 status: INPROGRESS
+		let db_recommendation = {custid: user.custid,
+					service: recommendation.service_id, 
+					bandwidth: ''+tbw, 
+					request: ''+request_id,
+					status: INPROGRESS
 														}
 		logger.info('Request ID: '+request_id)
 		return models.Recommendation.create(db_recommendation)

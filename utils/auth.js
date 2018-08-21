@@ -7,8 +7,8 @@ var logger = require('./log')
 const MINUTE_WINDOW = 5
 
 var appkeys = [
-    {appid: 'simon', key: 'simonrocks', custid:  'c_simon'},
-    {appid: 'test',  key: 'test123test', custid: 'c_test'}
+    {customer_name: 'Simon', appid: 'simon', key: 'simonrocks', custid:  'c_simon', ocn: 'A1234', currency: 'GBP', pricing_tier: '', region: 'EU', discount: 0},
+    {customer_name: 'Test', appid: 'test',  key: 'test123test', custid: 'c_test',  ocn: 'A1235', currency: 'GBP', pricing_tier: '', region: 'EU', discount: 0}
 ]
 
 var getPath = function(request) {
@@ -131,7 +131,6 @@ var validateRequest = exports.validateRequest = function(request, body) {
         if(!sig) reject({status: 402, message: 'Missing signature'})
         
         var key = match.key
-        var custid = match.custid
 
         logger.debug('Got key and sig')
 
@@ -142,7 +141,7 @@ var validateRequest = exports.validateRequest = function(request, body) {
             reject({status: 403, message: 'Bad signature'})
         } else {
             logger.info('Sig ok')
-            resolve(custid)
+            resolve(match)
         }
     })
 }
