@@ -78,13 +78,13 @@ var checkExistingRecommendations = function(service_id) {
  **/
 exports.submitRecommendation = function(custid, recommendation) {
 	var tbw = 999
-	return checkExistingRecommendations(custid, recommendation.service_id).then(()=>{
+	return checkExistingRecommendations(recommendation.service_id).then(()=>{
 		logger.debug('Calculating svc bw')
 		return service_api.calcBandwidthFlex(recommendation.service_id, calc_chg(recommendation))
 	}).then((target_bw) => {
 		tbw = target_bw
 		logger.debug('Placing request')
-		return request_api.flexBandwidth(recommendation.service_id, target_bw)
+		return request_api.flexBandwidth(custid, recommendation.service_id, target_bw)
 	}).then((request_id) => {
 		logger.debug('Saving recommendation')
 		let db_recommendation = {custid: custid,

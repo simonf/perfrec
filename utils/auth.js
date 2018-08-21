@@ -7,8 +7,8 @@ var logger = require('./log')
 const MINUTE_WINDOW = 5
 
 var appkeys = [
-    {appid: 'simon', key: 'simonrocks'},
-    {appid: 'test',  key: 'test123test'}
+    {appid: 'simon', key: 'simonrocks', custid:  'c_simon'},
+    {appid: 'test',  key: 'test123test', custid: 'c_test'}
 ]
 
 var getPath = function(request) {
@@ -106,9 +106,9 @@ var getSignature = function(request) {
 	return request.headers['x-colt-app-sig']	
 }
 
-var getKeyForAppId = function(appid) {
+var getMatchForAppId = function(appid) {
     var match = appkeys.find((element) => {return element.appid == appid })
-	return typeof match === 'undefined' ? null : match.key
+	return match || null
 }
 
 var signBody = exports.signBody = function(body, key) {
@@ -125,11 +125,14 @@ var signBody = exports.signBody = function(body, key) {
 var validateRequest = exports.validateRequest = function(request, body) {
     return new Promise((resolve, reject) => {
         var appid = getAppid(request)
-        var key = getKeyForAppId(appid)
+        var match = getMatchForAppId(appid)
         var sig = getSignature(request)
-        if(!key) reject({status: 404, message: 'Missing key'})
+        if(!match) reject({status: 404, message: 'Unrecognised AppId'})
         if(!sig) reject({status: 402, message: 'Missing signature'})
         
+        var key = match.key
+        var custid = match.custid
+
         logger.debug('Got key and sig')
 
         var signed_body = signBody(body, key)
@@ -139,7 +142,7 @@ var validateRequest = exports.validateRequest = function(request, body) {
             reject({status: 403, message: 'Bad signature'})
         } else {
             logger.info('Sig ok')
-            resolve(appid)
+            resolve(custid)
         }
     })
 }

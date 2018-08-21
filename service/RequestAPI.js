@@ -18,7 +18,7 @@ module.exports.getRequestStatus = function(request_id) {
   })
 }
 
-module.exports.flexBandwidth = function(service_id, target_bw) {
+module.exports.flexBandwidth = function(custid, service_id, target_bw) {
   return new Promise((resolve, reject) => {
     if(service_id > 3) reject({status: 400, message: 'Another request is in progress for this service'})
     else resolve(request_id++)

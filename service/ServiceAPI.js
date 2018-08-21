@@ -10,8 +10,9 @@ var service_api = {
       '3': { can_flex: true, bw: 0},
       '4': { can_flex: true, bw: 0}
     },
-    getService: function(service_id) {
+    getService: function(custid, service_id) {
         return new Promise((resolve, reject) => {
+            /// When integrating, check custid
             let svc = this.services[service_id]
             if (typeof svc !== 'undefined') {
                 logger.debug('Service found. Resolving')
@@ -22,8 +23,8 @@ var service_api = {
             } 
         })
     },
-    calculateTargetBandwidth: function(service_id, bw_change) {
-        return this.getService(service_id).then((svc) => {
+    calculateTargetBandwidth: function(custid, service_id, bw_change) {
+        return this.getService(custid, service_id).then((svc) => {
             let target_bw = svc.bandwidth + bw_change
             if (target_bw < MIN_BANDWIDTH || target_bw > MAX_BANDWIDTH) {
                 logger.info('Bandwidth outside limits. Throwing error')
@@ -34,7 +35,7 @@ var service_api = {
     }
 }
 
-module.exports.calcBandwidthFlex = function(service_id, bw_change) {
+module.exports.calcBandwidthFlex = function(custid, service_id, bw_change) {
     logger.info('Validating bandwidth flex')
-    return service_api.calculateTargetBandwidth(service_id, bw_change)
+    return service_api.calculateTargetBandwidth(custid, service_id, bw_change)
 }
