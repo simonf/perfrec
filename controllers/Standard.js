@@ -22,8 +22,8 @@ module.exports.getRecommendationStatus = function getRecommendationStatus (req, 
 		utils.writeError({status: 400, message: 'Missing recommendation id'})
 	else {
 		logger.info('Checking status for '+recId)
-		auth.validateRequest(req, '').then(function() {
-			return Standard.getRecommendationStatus(recId)
+		auth.validateRequest(req, '').then(function(appid) {
+			return Standard.getRecommendationStatus(appid, recId)
 		}).then(function (response) {
 			utils.writeJson(res, response)
 		}).catch(function(err) {
@@ -39,8 +39,8 @@ module.exports.submitRecommendation = function submitRecommendation (req, res, n
     if(typeof body === 'undefined') {
 		utils.writeError(res,{status: 400, message: 'Bad or missing recommendation'})
 	} else {
-		auth.validateRequest(req, body).then(function() {
-			return Standard.submitRecommendation(body)
+		auth.validateRequest(req, body).then(function(appid) {
+			return Standard.submitRecommendation(appid, body)
 		}).then(function (response) {
 			utils.writeJson(res, response)
 		}).catch(function(err) {

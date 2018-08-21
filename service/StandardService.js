@@ -26,12 +26,13 @@ exports.checkstatus = function() {
  * recId String 
  * returns RecommendationState
  **/
-exports.getRecommendationStatus = function(recId) {
+exports.getRecommendationStatus = function(custid, recId) {
 	var stat = ''
 	var the_recommendation = null
 	logger.info('Checking status for '+recId)
 	return models.Recommendation.findById(parseInt(recId)).then((rec) => {
 		if (!rec) throw {status: 404, message: 'Recommendation '+recId + ' not found'}
+		if (rec.custid != custid) throw {status: 403, message: 'This recommendation was not made by you'}
 		the_recommendation = rec
 		return request_api.getRequestStatus(rec.request)
 	}).then((status) => {
@@ -75,9 +76,9 @@ var checkExistingRecommendations = function(service_id) {
  * recommendation Recommendation Recommendation being made (optional)
  * returns RecommendationResponse
  **/
-exports.submitRecommendation = function(recommendation) {
+exports.submitRecommendation = function(custid, recommendation) {
 	var tbw = 999
-	return checkExistingRecommendations(recommendation.service_id).then(()=>{
+	return checkExistingRecommendations(custid, recommendation.service_id).then(()=>{
 		logger.debug('Calculating svc bw')
 		return service_api.calcBandwidthFlex(recommendation.service_id, calc_chg(recommendation))
 	}).then((target_bw) => {
@@ -86,7 +87,8 @@ exports.submitRecommendation = function(recommendation) {
 		return request_api.flexBandwidth(recommendation.service_id, target_bw)
 	}).then((request_id) => {
 		logger.debug('Saving recommendation')
-		let db_recommendation = {service: recommendation.service_id, 
+		let db_recommendation = {custid: custid,
+														 service: recommendation.service_id, 
 														 bandwidth: ''+tbw, 
 														 request: ''+request_id,
 														 status: INPROGRESS

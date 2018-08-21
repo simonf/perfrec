@@ -5,7 +5,8 @@ var express = require('express'),
     logger = require('./utils/log'),
     hmac = require('./controllers/Hmac'),
     standard = require('./controllers/Standard'),
-    models = require('./models')
+    models = require('./models'),
+    auth = require('./utils/auth')
 
 var app = express()
 var serverPort = 8081;
@@ -20,11 +21,10 @@ app.post('/recommendation', standard.submitRecommendation)
 
 app.post('/sign', hmac.calcHMAC)
 
-// initialise thee database
-//require('./service/recommendation_db').init()
 
 // Start the server 
 models.sequelize.sync().then(() => {
+  auth.initKeys()
   app.listen(serverPort, host, function () {
     logger.info('Your server is listening on port %d (http://localhost:%d)', serverPort, serverPort);
   })  

@@ -1,14 +1,15 @@
 const Url = require('url')
+const fs = require('fs')
 const crypto = require('crypto-js')
 const Base64 = crypto.enc.Base64
 var logger = require('./log')
 
 const MINUTE_WINDOW = 5
 
-var appkeys = {
-    'simon': 'simonrocks',
-    'test': 'test'
-}
+var appkeys = [
+    {appid: 'simon', key: 'simonrocks'},
+    {appid: 'test',  key: 'test123test'}
+]
 
 var getPath = function(request) {
     var u = Url.parse(request.url)
@@ -106,7 +107,8 @@ var getSignature = function(request) {
 }
 
 var getKeyForAppId = function(appid) {
-	return typeof appkeys[appid] === 'undefined' ? null : appkeys[appid]
+    var match = appkeys.find((element) => {return element.appid == appid })
+	return typeof match === 'undefined' ? null : match.key
 }
 
 var signBody = exports.signBody = function(body, key) {
@@ -122,21 +124,34 @@ var signBody = exports.signBody = function(body, key) {
 
 var validateRequest = exports.validateRequest = function(request, body) {
     return new Promise((resolve, reject) => {
-	var key = getKeyForAppId(getAppid(request))
-	var sig = getSignature(request)
-	if(!key) reject({status: 404, message: 'Missing key'})
-	if(!sig) reject({status: 402, message: 'Missing signature'})
-    
-	logger.debug('Got key and sig')
+        var appid = getAppid(request)
+        var key = getKeyForAppId(appid)
+        var sig = getSignature(request)
+        if(!key) reject({status: 404, message: 'Missing key'})
+        if(!sig) reject({status: 402, message: 'Missing signature'})
+        
+        logger.debug('Got key and sig')
 
-	var signed_body = signBody(body, key)
+        var signed_body = signBody(body, key)
 
-	if(!checkSig(sig, request, signed_body, key)) {
-	    logger.info('Signature ' + sig + ' does not match expectation')
-	    reject({status: 403, message: 'Bad signature'})
-	} else {
-	    logger.info('Sig ok')
-	    resolve()
-	}
+        if(!checkSig(sig, request, signed_body, key)) {
+            logger.info('Signature ' + sig + ' does not match expectation')
+            reject({status: 403, message: 'Bad signature'})
+        } else {
+            logger.info('Sig ok')
+            resolve(appid)
+        }
     })
+}
+
+var initKeys = module.exports.initKeys = function () {
+    if (fs.existsSync('./data/keys.js')) {
+        logger.info('Loading keys')
+        appkeys = require('../data/keys')
+    } else {
+        logger.info('Falling back on built-in keys')
+    }
+    appkeys.forEach(element => {
+        console.log(element.appid)
+    });
 }

@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true
     },
+    custid: DataTypes.STRING,
     service: DataTypes.STRING,
     request: DataTypes.STRING,
     bandwidth: DataTypes.INTEGER,
