@@ -1,70 +1,60 @@
 const util = require('util')
+
+var logger = require('../utils/log'),
+    env = process.env.NODE_ENV || 'development',
+    config = require('../config/config_env')[env]
+
 var Client = require('node-rest-client').Client
 var client = new Client()
-var logger = require('../utils/log')
 
 const MIN_BANDWIDTH = 0
 const MAX_BANDWIDTH = 1000
 
-const SERVICE_API='http://amsnov03:8330/service-inventory/api/connection/'
+//const SERVICE_API='http://amsnov03:8330/service-inventory/api/connection/'
 // sample connection id: 80008581
 
 
-var service_api = {
-    services: {
-      '1': { can_flex: true, bw: 100},
-      '2': { can_flex: false, bw: 100},
-      '3': { can_flex: true, bw: 0},
-      '4': { can_flex: true, bw: 0}
-    },
-    getService: function(custid, service_id) {
-	var args = {
-	    headers: { 
-		'Authorization': 'Basic Tm92U2VydkludlVzZXI1OTpOZHhVQ0NkMkZmMzJqa3Zl'
-	    }
-	}
-	var url = SERVICE_API+service_id
-	return new Promise((resolve, reject) => {
-	    let req = client.get(url, args, (data, response) => {
-		logger.debug(data)
-		if (data.ocn != ''+custid) reject({status: 403, message: 'You are not allowed to update that service'})
-		resolve({id: data.connection_id, bandwidth: data.bandwidth})
-	    })
-	    req.on('error', (err) => {
-		logger.error(err)
-		reject({status: 500, message: 'Unable to validate the service ID because of an internal error'})
-	    })
-	})
-	
-    },
-    getServiceOld: function(custid, service_id) {
-        return new Promise((resolve, reject) => {
-            /// When integrating, check custid
-            let svc = this.services[service_id]
-            if (typeof svc !== 'undefined') {
-                logger.debug('Service found. Resolving')
-                resolve({id: service_id, bandwidth: svc.bw})
-            } else {
-                logger.debug('Unrecognised service. Rejecting')
-                reject({status: 404, message: 'Service not found'}) 
-            } 
+var getService = function(custid, service_id) {
+    if (config.mock) {
+        return new Promise((resolve, reject)  => {
+            resolve({id: '1', bandwidth: 100})
         })
-    },
-    calculateTargetBandwidth: function(custid, service_id, bw_change) {
-        return this.getService(custid, service_id).then((svc) => {
-            let target_bw = svc.bandwidth + bw_change
-            if (target_bw < MIN_BANDWIDTH || target_bw > MAX_BANDWIDTH) {
-                logger.info('Bandwidth outside limits. Throwing error')
-                throw {status: 400, message: 'Invalid bandwidth change'}
+    } else {
+        var args = {
+            headers: { 
+            'Authorization': 'Basic Tm92U2VydkludlVzZXI1OTpOZHhVQ0NkMkZmMzJqa3Zl'
             }
-            return target_bw
+        }
+        var url = config.SERVICE_API+service_id
+        logger.debug('Calling '+url)
+        return new Promise((resolve, reject) => {
+            let req = client.get(url, args, (data, response) => {
+                logger.debug(data)
+                if (data.ocn != ''+custid) reject({status: 403, message: 'You are not allowed to update that service'})
+                    resolve({id: data.connection_id, bandwidth: data.bandwidth})
+            })
+            req.on('error', (err) => {
+                logger.error(err)
+                reject({status: 500, message: 'Unable to validate the service ID because of an internal error'})
+            })
         })
     }
 }
 
+var calculateTargetBandwidth = function(custid, service_id, bw_change) {
+    return this.getService(custid, service_id).then((svc) => {
+        let target_bw = svc.bandwidth + bw_change
+        if (target_bw < MIN_BANDWIDTH || target_bw > MAX_BANDWIDTH) {
+            logger.info('Bandwidth outside limits. Throwing error')
+            throw {status: 400, message: 'Invalid bandwidth change'}
+        }
+        return target_bw
+    })    
+}
+
 module.exports.calcBandwidthFlex = function(custid, service_id, bw_change) {
     logger.info('Validating bandwidth flex')
-    return service_api.calculateTargetBandwidth(custid, service_id, bw_change)
+    return calculateTargetBandwidth(custid, service_id, bw_change)
 }
 
 
