@@ -2,6 +2,7 @@ var Client = require('node-rest-client').Client
 var client = new Client()
 var logger = require('../utils/log')
 const util = require('util')
+const fs = require('fs')
 
 var bw_to_price = [
   {bw: 10, price_id: 103696},
@@ -15,15 +16,13 @@ var bw_to_price = [
 ]
 
 var initPrices = module.exports.initPrices = function(ocn) {
-  if (fs.existsSync('./data/prices.js')) {
+  logger.debug('Initialising prices')
+  if (fs.existsSync('../data/prices.js')) {
       logger.info('Loading prices')
       bw_to_price = require('../data/prices')
   } else {
       logger.info('Falling back on built-in prices')
   }
-  appkeys.forEach(element => {
-      console.log(element.appid)
-  });
 }
 
 module.exports.getPrices = function(ocn) {
@@ -34,9 +33,13 @@ module.exports.getPrices = function(ocn) {
 }
 
 module.exports.getPriceId = function(ocn, bw) {
+  logger.debug('looking for a price')
   return new Promise((resolve, reject) => {
     initPrices(ocn)
-    resolve(bw_to_price.sort((a,b) => { return a.bw - b.bw }).find((element) => { return element.bw >= target_bw }).price_id)
+    var sorted_bw = bw_to_price.sort((a,b) => { return a.bw - b.bw })
+    var closest_price = sorted_bw.find((element) => { return element.bw >= bw })
+    logger.info('Bandwidth '+bw+' corresponds to price id '+closest_price)
+    resolve(closest_price.priceid)
   })
 }
 

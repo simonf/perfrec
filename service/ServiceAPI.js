@@ -45,7 +45,7 @@ var getService = function(custid, service_id) {
 
 var calculateTargetBandwidth = function(custid, service_id, bw_change) {
     logger.debug('In calculateTargetBandwidth. custid: '+custid+ ', service_id: '+service_id+', bw_change: '+bw_change)
-    return this.getService(custid, service_id).then((svc) => {
+    return getService(custid, service_id).then((svc) => {
 	logger.debug('Checking allowed flex range')
         let target_bw = svc.bandwidth + bw_change
         if (target_bw < MIN_BANDWIDTH || target_bw > MAX_BANDWIDTH) {

@@ -1,7 +1,8 @@
 'use strict';
 const util = require('util'),
 			request_api = require('./RequestAPI.js'),
-			service_api = require('./ServiceAPI.js')
+			service_api = require('./ServiceAPI.js'),
+			price_api = require('./PriceAPI.js')
 var models = require('../models'),
 		logger = require('../utils/log')	
 
@@ -84,7 +85,7 @@ exports.submitRecommendation = function(user, recommendation) {
 	}).then((target_bw) => {
 		tbw = target_bw
 		logger.debug('Finding price')
-		return price_api.getPriceId(target_bw)
+		return price_api.getPriceId(user.ocn, tbw)
 	}).then((price_id) => {
 		logger.debug('Placing request')
 		return request_api.flexBandwidth(user, recommendation.service_id, tbw, price_id)

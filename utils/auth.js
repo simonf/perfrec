@@ -7,8 +7,8 @@ var logger = require('./log')
 const MINUTE_WINDOW = 5
 
 var appkeys = [
-    {customer_name: 'Simon', appid: 'simon', key: 'simonrocks', custid:  'c_simon', ocn: 'A1234', currency: 'GBP', pricing_tier: '', region: 'EU', discount: 0},
-    {customer_name: 'Test', appid: 'test',  key: 'test123test', custid: 'c_test',  ocn: 'A1235', currency: 'GBP', pricing_tier: '', region: 'EU', discount: 0}
+    {customer_name: 'Simon', appid: 'simon', key: 'simonrocks', custid:  'c_simon', ocn: 'A1234', currency: 'GBP', pricing_tier: '', region: 'EU', discount: 0, ocn: 'A12345'},
+    {customer_name: 'Test', appid: 'test',  key: 'test123test', custid: 'c_test',  ocn: 'A1235', currency: 'GBP', pricing_tier: '', region: 'EU', discount: 0, ocn: 'B8765'}
 ]
 
 var getPath = function(request) {
