@@ -7,7 +7,7 @@ exports.writeError = function(res, err) {
   if(!err.status) err.status = 400
   if(!err.message) err.message = 'Unknown error'
   var payload = JSON.stringify(err, null, 2);
-  res.writeHead(err.status, {'Content-Type': 'application/json'});
+  res.writeHead(err.status, {'Content-Type': 'application/json', 'Content-Length': payload.length});
   res.end(payload);
 
 }
@@ -47,6 +47,6 @@ var writeJson = exports.writeJson = function(response, arg1, arg2) {
   if(typeof payload === 'object') {
     payload = JSON.stringify(payload, null, 2);
   }
-  response.writeHead(code, {'Content-Type': 'application/json'});
+  response.writeHead(code, {'Content-Type': 'application/json', 'Content-Length': payload.length});
   response.end(payload);
 }
