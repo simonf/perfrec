@@ -79,21 +79,26 @@ var getDatestamps = function() {
 
 var computeStringSig = exports.calcHMAC = function(body, key) {
     if(typeof body == 'undefined' || body.length < 1) body =''
-    logger.info('Encrypting: ' + body)
+    logger.debug('Encrypting: ' + body)
     var sig = crypto.HmacSHA256(body, key)
     var sigb64 = Base64.stringify(sig)
-    logger.info('Sig: ' + sigb64)
+    logger.debug('Sig: ' + sigb64)
     return sigb64
 }
 
 var checkSig = function(sig, request, body_sig, key) {
-    logger.info('Validating '+sig)
+    logger.debug('Validating '+sig)
     var ds = getDatestamps()
     var path = getPath(request)
     return ds.some(function(ds) {
 	var mysig = computeStringSig(ds + path + body_sig, key)
-	logger.info('Checking '+mysig)
-	return sig == mysig
+	logger.debug('Checking '+mysig)
+	if(sig == mysig) {
+	    return true
+        } else {
+	    logger.warn('Signature ' + sig + ' does not match expectation '+ mysig + ' for body ' + ds + path + body_sig)
+	    return false
+	}
     })
 }
     
@@ -137,7 +142,6 @@ var validateRequest = exports.validateRequest = function(request, body) {
         var signed_body = signBody(body, key)
 
         if(!checkSig(sig, request, signed_body, key)) {
-            logger.info('Signature ' + sig + ' does not match expectation')
             reject({status: 403, message: 'Bad signature'})
         } else {
             logger.info('Sig ok')

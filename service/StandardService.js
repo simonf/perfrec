@@ -81,7 +81,7 @@ exports.submitRecommendation = function(user, recommendation) {
 	var tbw = 999
 	return checkExistingRecommendations(recommendation.service_id).then(()=>{
 		logger.debug('Calculating svc bw')
-	    return service_api.calcBandwidthFlex(user.custid, recommendation.service_id, calc_chg(recommendation))
+	    return service_api.calcBandwidthFlex(user.ocn, recommendation.service_id, calc_chg(recommendation))
 	}).then((target_bw) => {
 		tbw = target_bw
 		logger.debug('Finding price')

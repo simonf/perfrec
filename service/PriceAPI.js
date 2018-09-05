@@ -17,7 +17,7 @@ var bw_to_price = [
 
 var initPrices = module.exports.initPrices = function(ocn) {
   logger.debug('Initialising prices')
-  if (fs.existsSync('../data/prices.js')) {
+  if (fs.existsSync('./data/prices.js')) {
       logger.info('Loading prices')
       bw_to_price = require('../data/prices')
   } else {
@@ -38,8 +38,8 @@ module.exports.getPriceId = function(ocn, bw) {
     initPrices(ocn)
     var sorted_bw = bw_to_price.sort((a,b) => { return a.bw - b.bw })
     var closest_price = sorted_bw.find((element) => { return element.bw >= bw })
-    logger.info('Bandwidth '+bw+' corresponds to price id '+closest_price)
-    resolve(closest_price.priceid)
+    logger.info('Bandwidth '+bw+' corresponds to price id '+closest_price.price_id)
+    resolve(closest_price.price_id)
   })
 }
 

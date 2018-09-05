@@ -82,8 +82,12 @@ module.exports.flexBandwidth = function(user, service_id, target_bw, price_id) {
 			var req = client.post(url, args,function(data, response) {
 				logger.info(data)
 			    if(response.statusCode == 200) {
-				logger.info('Created request with id '+data)
-				resolve(data)
+				if(data < 10) {
+				    reject({status: 500, message: 'Internal API call failed with status '+data})
+				} else {
+				    logger.info('Created request with id '+data)
+				    resolve(data)
+				}
 			    } else {
 				logger.error('While creating a BW modification request, status code was '+response.statusCode)
 				reject({status:500, message: 'Internal API call returned a response code of '+response.statusCode})			    }
