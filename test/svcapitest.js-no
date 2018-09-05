@@ -1,0 +1,81 @@
+var service = require('../service/ServiceAPI')
+var assert = require('assert')
+
+describe('ServiceAPI', function() {
+    describe('getService', function() {
+	it('should get a service by ID', function() {
+	    assert(process.env.NODE_ENV == 'test')
+	    service.getService('000021','80007708').then((svc) => {
+		console.log(svc)
+		assert(true)
+	    }).catch((err) => {
+		console.log(err)
+		assert(false)
+	    })
+	})
+	it('should reject changes to a service for a different customer', function(){
+    	    assert(process.env.NODE_ENV == 'test')
+	    service.getService('lalala','80007708').then((svc) => {
+		console.log(svc)
+		assert(false)
+	    }).catch((err) => {
+		console.log('Different customer: ' + err.message)
+		assert(err.status == 403)
+	    })
+	})
+	it('should reject zero bandwidth changes', function() {
+	    assert(process.env.NODE_ENV == 'test')
+	    service.calcBandwidthFlex('000021','80007708', 0).then((svc) => {
+		console.log(svc)
+		assert(false)
+	    }).catch((err) => {
+		console.log('Zero bw: '+ err.message)
+		assert(err.status == 400)
+	    })
+	})
+	it('should reject invalid bandwidth changes', function() {
+	    assert(process.env.NODE_ENV == 'test')
+	    service.calcBandwidthFlex('000021','80007708', -50).then((svc) => {
+		console.log('Negative bw:')
+		console.log(svc)
+		assert(false)
+	    }).catch((err) => {
+		console.log('Negative bw: ' +err.message)
+		assert(err.status == 400)
+	    })
+
+	})
+	it('should reject invalid bandwidth changes', function() {
+	    assert(process.env.NODE_ENV == 'test')
+	    service.calcBandwidthFlex('000021','80007708', 50000).then((svc) => {
+		console.log(svc)
+		assert(false)
+	    }).catch((err) => {
+		console.log('Huge bw: ' + err.message)
+		assert(err.status == 400)
+	    })
+		})
+	it('should accept valid negative bandwidth changes', function() {
+	    assert(process.env.NODE_ENV == 'test')
+	    service.calcBandwidthFlex('000021','80007708', -20).then((svc) => {
+		console.log(svc)
+		assert(svc == 30)
+	    }).catch((err) => {
+		console.log('Negative bw: ')
+		console.log(err)
+		assert(false)
+	    })
+	})
+	it('should accept valid positive bandwidth changes', function() {
+	    assert(process.env.NODE_ENV == 'test')
+	    service.calcBandwidthFlex('000021','80007708', 50).then((svc) => {
+		console.log(svc)
+		assert(svc == 100)
+	    }).catch((err) => {
+		console.log(err)
+		assert(false)
+	    })
+	})
+
+    })
+})

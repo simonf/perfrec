@@ -11,6 +11,12 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
     format: winston.format.simple(),
     transports: [ console ]
   })
+} else if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test') {
+  logger = winston.createLogger({
+    level: 'error',
+    format: winston.format.json(),
+    transports: [ console, file ]
+  })
 } else {
   logger = winston.createLogger({
     level: 'warn',

@@ -7,14 +7,14 @@ var logger = require('../utils/log'),
 var Client = require('node-rest-client').Client
 var client = new Client()
 
-const MIN_BANDWIDTH = 0
+const MIN_BANDWIDTH = 10
 const MAX_BANDWIDTH = 1000
 
 //const SERVICE_API='http://amsnov03:8330/service-inventory/api/connection/'
 // sample connection id: 80008581
 
 
-var getService = function(custid, service_id) {
+module.exports.getService =  getService = function(custid, service_id) {
     logger.debug('In getService')
     if (config.mock) {
 	logger.debug('returning mock value')
@@ -47,6 +47,7 @@ var calculateTargetBandwidth = function(custid, service_id, bw_change) {
     logger.debug('In calculateTargetBandwidth. custid: '+custid+ ', service_id: '+service_id+', bw_change: '+bw_change)
     return getService(custid, service_id).then((svc) => {
 	logger.debug('Checking allowed flex range')
+	if(bw_change == 0) throw {status: 400, message: 'Invalid bandwidth change'}
         let target_bw = svc.bandwidth + bw_change
         if (target_bw < MIN_BANDWIDTH || target_bw > MAX_BANDWIDTH) {
             logger.info('Bandwidth outside limits. Throwing error')

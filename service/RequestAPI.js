@@ -24,12 +24,11 @@ module.exports.getRequestStatus = function(request_id) {
 			var args = {
 				headers: {
 				'Accept': 'application/json',
-				'Authorization': 'Basic Tm92U2VydkludlVzZXI1OTpOZHhVQ0NkMkZmMzJqa3Zl'
+				'Authorization': 'Basic Tm92UmVxdWVzdFVzZXI1OTpOZHhVQ0NkMkZmMzJqa3Zl'
 				}
 			}	
-			var req = client.get(url, args,function(data, response) {
-				logger.info(data)
-				if(response.statusCode == 200) resolve(data.status)
+		    var req = client.get(url, args,function(data, response) {
+				if(response.statusCode == 200) resolve(data[0].status)
 				else reject({status:500, message: 'Internal API call returned a response code of '+response.statusCode})
 			})
 
@@ -50,30 +49,44 @@ module.exports.flexBandwidth = function(user, service_id, target_bw, price_id) {
 		return new Promise((resolve, reject) => {
 			var url = config.REQUEST_POST_API+service_id+'?customerid='+user.custid
 			logger.debug('POSTing '+url)
-			var payload = {
-				priceId: price_id,
-				ocn: user.ocn,
-				customerCurrency: user.currency,
-				discountPercentage: 0.0,
-				customer_region:user.region,
-				pricing_tier: user.pricing_tier,
-				customerName: user.customer_name,
-				bandwidth: ''+target_bw
-			}
-			logger.info('New request payload: ' + util.inspect(payload))
+
+		    var payload = {  
+			price_id: price_id,
+			customer_currency: user.currency,
+			discount_percentage:null,
+			bcn: user.bcn,
+			portal_user_id: user.portal_user_id,
+			a_end_vlan_mapping: null,
+			b_end_vlan_mapping: null,
+			a_end_vlan_type: null,
+			b_end_vlan_type: null,
+			a_end_vlan_ids: null,
+			b_end_vlan_ids: null,
+			customer_name: user.customer_name,
+			ocn: user.ocn,
+			coterminus_option:false,
+			customer_region: user.region,
+			pricing_tier: user.pricing_tier
+		    }
+
+		    logger.info('New request payload: ' + util.inspect(payload))
 
 			var args = {
 				data: payload,
 				headers: {
 				'Content-Type': 'application/json',
-				'Authorization': 'Basic Tm92U2VydkludlVzZXI1OTpOZHhVQ0NkMkZmMzJqa3Zl'
+				'Authorization': 'Basic Tm92UmVxdWVzdFVzZXI1OTpOZHhVQ0NkMkZmMzJqa3Zl'
 				}
 			}
 
 			var req = client.post(url, args,function(data, response) {
 				logger.info(data)
-				if(response.statusCode == 200) resolve(data.request_id)
-				else reject({status:500, message: 'Internal API call returned a response code of '+response.statusCode})
+			    if(response.statusCode == 200) {
+				logger.info('Created request with id '+data)
+				resolve(data)
+			    } else {
+				logger.error('While creating a BW modification request, status code was '+response.statusCode)
+				reject({status:500, message: 'Internal API call returned a response code of '+response.statusCode})			    }
 			})
 
 			logger.debug(req.options)
@@ -85,3 +98,31 @@ module.exports.flexBandwidth = function(user, service_id, target_bw, price_id) {
 		})
 	}
 }
+
+/* Example modify bw request payload:
+
+{  
+  "price_id":147026,
+  "customer_currency":"GBP",
+  "discount_percentage":null,
+  "bcn":"111111",
+  "portal_user_id":1,
+  "a_end_vlan_mapping":null,
+  "b_end_vlan_mapping":null,
+  "a_end_vlan_type":null,
+  "b_end_vlan_type":null,
+  "a_end_vlan_ids":null,
+  "b_end_vlan_ids":null,
+  "customer_name":"Sundar Expo",
+  "ocn":"111111",
+  "coterminus_option":false,
+  "customer_region":"EU",
+  "pricing_tier":"ENT Standard"
+}
+
+
+In dev: 50M DCNET-UK-LON - DCNET-UK-LON is 151097
+100M is 151098
+150M is 151099
+
+*/
