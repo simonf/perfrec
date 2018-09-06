@@ -16,6 +16,23 @@ module.exports.checkstatus = function checkstatus (req, res, next) {
     })
 }
 
+module.exports.getService = function getService(req, res, next) {
+    var svcId = req.params['serviceId']
+    if(typeof svcId === 'undefined')
+	utils.writeError({status: 400, message: 'Missing service ID'})
+    else {
+	logger.info('Checking service with ID '+svcId)
+	auth.validateRequest(req,'').then(function(user) {
+	    logger.info('Got user with appid '+user.appid)
+	    if (user.services && user.services.includes(svcId))
+		utils.writeJson(res, {status: 200, message: 'ok'})
+	    else utils.writeError(res, {status: 404, message: "You do not have access to that service"})
+	}).catch(function (err) {
+	    utils.writeError(res,err)
+	})
+    }
+}
+
 module.exports.getRecommendationStatus = function getRecommendationStatus (req, res, next) {
     var recId = req.params['recId']
 	if(typeof recId === 'undefined') 

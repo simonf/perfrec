@@ -18,7 +18,7 @@ app.use(bodyParser.json())
 app.get('/status',standard.checkstatus)
 app.get('/recommendation/:recId', standard.getRecommendationStatus)
 app.post('/recommendation', standard.submitRecommendation)
-
+app.get('/:serviceId', standard.getService)
 app.post('/sign', hmac.calcHMAC)
 
 

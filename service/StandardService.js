@@ -20,6 +20,10 @@ exports.checkstatus = function() {
   });
 }
 
+exports.getService = function(user, svcId) {
+    return service_api.canUserModService(user, svcId)
+}
+
 
 /**
  * get the state of a previously submitted recommendation
