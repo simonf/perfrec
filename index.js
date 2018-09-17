@@ -9,7 +9,7 @@ var express = require('express'),
     auth = require('./utils/auth')
 
 var app = express()
-var serverPort = 8081;
+var serverPort = 8091;
 var host = '0.0.0.0';
 
 app.use(bodyParser.json())
@@ -26,6 +26,6 @@ app.post('/sign', hmac.calcHMAC)
 models.sequelize.sync().then(() => {
   auth.initKeys()
   app.listen(serverPort, host, function () {
-    logger.info('Your server is listening on port %d (http://localhost:%d)', serverPort, serverPort);
+    logger.info('Your server is listening on port ' + serverPort);
   })  
 })
