@@ -17,7 +17,7 @@ var loginAndGetTenantIfNecessary = function(creds) {
 	    resolve(tenant_id)
 	})
     } else {
-	login(creds.username,creds.password).then((token) => {
+	return login(creds.username,creds.password).then((token) => {
 	    login_token = token
 	    return getTenants(token)
 	}).then((tenant) => {
@@ -36,30 +36,30 @@ var loginAndGetTenantIfNecessary = function(creds) {
 
 exports.getAnalytics = function(svcId) {
     return loginAndGetTenantIfNecessary(credentials).then((tenantId) => {
-    getRawMetrics(tenant_id,default_monitored_object).then((metricarray) => {
-	if(metricarray && metricarray.length > 0) {
-	    var processed_data = {
-		'fwdDelayMax': [],
-		'fwdJitterMax': [],
-		'fwdPacketsLost': [],
-		'fwdPacketsReceived': [],
-		'fwdDelayVarMax': [],
-		'fwdBytesReceived': [],
-		'revDelayMax': [],
-		'revJitterMax': [],
-		'revPacketsLost': [],
-		'revPacketsReceived': [],
-		'revDelayVarMax': [],
-		'revBytesReceived': []
+	return getRawMetrics(tenant_id,default_monitored_object).then((metricarray) => {
+	    if(metricarray && metricarray.length > 0) {
+		var processed_data = {
+		    'fwdDelayMax': [],
+		    'fwdJitterMax': [],
+		    'fwdPacketsLost': [],
+		    'fwdPacketsReceived': [],
+		    'fwdDelayVarMax': [],
+		    'fwdBytesReceived': [],
+		    'revDelayMax': [],
+		    'revJitterMax': [],
+		    'revPacketsLost': [],
+		    'revPacketsReceived': [],
+		    'revDelayVarMax': [],
+		    'revBytesReceived': []
+		}
+		metricarray.forEach(function(element) {
+		    postProcess(processed_data, element)
+		})
+		return processed_data
+	    } else {
+		throw new Error('No data for '+monitored_object)
 	    }
-	    metricarray.forEach(function(element) {
-		postProcess(processed_data, element)
-	    })
-	    return processed_data
-	} else {
-	    throw new Error('No data for '+monitored_object)
-	}
-    })
+	})
     })
 }
 
@@ -138,7 +138,7 @@ var postProcess = function(retval, element) {
     var directions = ['1','2']
     directions.forEach(function(item) {
 	if(element.hasOwnProperty(item)) {
-	    for (prop in element[item]) {
+	    for(var prop in element[item]) {
 		var newElement = { x: new Date(element.timestamp), y: element[item][prop] }
 		var newprop = prop.charAt(0).toUpperCase() + prop.slice(1)
 		var newattribname = item == '1' ? 'fwd'+newprop : 'rev'+newprop

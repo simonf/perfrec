@@ -28,10 +28,15 @@ module.exports.getService = function getService(req, res, next) {
 //	    if (user.services && user.services.includes(svcId))
 //		return Datahub.getAnalytics(svcId)
 //	    else throw new Error("You do not have access to that service")
-		 Datahub.getAnalytics(svcId).then(function(data) {
-//	}).then(function(data) {
+	Datahub.getAnalytics(svcId).then(function(data) {
+		     //	}).then(function(data) {
+	    logger.info('Returned some data')
+	    logger.info(data)
+	    res.set('Content-Type','application/json')
+	    res.set('Connection','close')
 	    res.status(200).json(data)
 	}).catch(function (err) {
+	    logger.error('Error')
 	    utils.writeError(res,err)
 	})
     }
