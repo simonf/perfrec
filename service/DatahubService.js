@@ -9,7 +9,7 @@ var login_token = ''
 var tenant_id = ''
 var debug = false;
 var default_monitored_object = 'GT-1-to-GT-2-EF-G280-0057'
-
+var proxyUrl = 'http://10.100.6.72:80'
 
 var loginAndGetTenantIfNecessary = function(creds) {
     if (login_token != '' && tenant_id != '') {
@@ -66,8 +66,9 @@ exports.getAnalytics = function(svcId) {
 
 var login = function(username, password) {
     return new Promise((resolve, reject) => {
-	request.post(credentials.login_url,
-		     {form: { username: username, password: password}, proxy: 'http://webproxy.eu.colt:80'},
+	var proxiedRequest = request.defaults({'proxy': proxyUrl})
+	proxiedRequest.post(credentials.login_url,
+		     {form: { username: username, password: password}},
 		     function(error, response, body) {
 			 if(error) {
 			     console.log(util.inspect(err))
@@ -83,7 +84,7 @@ var getTenants = function(token) {
   return new Promise((resolve, reject) => {
       var options = {
 	  url: credentials.tenant_url,
-	  proxy: 'http://webproxy.eu.colt:80',
+	  proxy: proxyUrl,
 	  headers: {
               'Authorization': token,
 	  }
@@ -109,7 +110,7 @@ var getRawMetrics = function(tenant_id, monitored_object) {
               'Authorization': login_token,
 	      'Cache-Control': 'no-cache'
 	  },
-	  proxy: 'http://webproxy.eu.colt:80',
+	  proxy: proxyUrl,
 	  json: true,
 	  body:{
 	      tenantId:tenant_id,
