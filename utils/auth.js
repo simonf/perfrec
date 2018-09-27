@@ -128,6 +128,7 @@ var signBody = exports.signBody = function(body, key) {
 }
 
 var validateRequest = exports.validateRequest = function(request, body) {
+    logger.info(request.headers)
     return new Promise((resolve, reject) => {
         var appid = getAppid(request)
         var match = getMatchForAppId(appid)

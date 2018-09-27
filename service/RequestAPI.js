@@ -80,10 +80,14 @@ module.exports.flexBandwidth = function(user, service_id, target_bw, price_id) {
 			}
 
 			var req = client.post(url, args,function(data, response) {
-				logger.info(data)
+			    logger.info(data)
 			    if(response.statusCode == 200) {
-				if(data < 10) {
-				    reject({status: 500, message: 'Internal API call failed with status '+data})
+				if(Number(data) !== NaN && Number(data) < 10) {
+				    if (Number(data) == -16) {
+					reject({status: 400, message: 'Unacceptable bandwidth change'})
+				    } else {
+					reject({status: 500, message: 'Internal API call failed with status '+data})
+				    }
 				} else {
 				    logger.info('Created request with id '+data)
 				    resolve(data)

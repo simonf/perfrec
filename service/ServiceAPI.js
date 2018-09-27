@@ -7,8 +7,8 @@ var logger = require('../utils/log'),
 var Client = require('node-rest-client').Client
 var client = new Client()
 
-const MIN_BANDWIDTH = 10
-const MAX_BANDWIDTH = 1000
+const MIN_BANDWIDTH = 50
+const MAX_BANDWIDTH = 900
 
 //const SERVICE_API='http://amsnov03:8330/service-inventory/api/connection/'
 // sample connection id: 80008581
@@ -52,7 +52,9 @@ var calculateTargetBandwidth = function(custid, service_id, bw_change) {
         if (target_bw < MIN_BANDWIDTH || target_bw > MAX_BANDWIDTH) {
             logger.info('Bandwidth outside limits. Throwing error')
             throw {status: 400, message: 'Invalid bandwidth change'}
-        }
+        } else {
+	    logger.info('Target bw is '+target_bw)
+	}
         return target_bw
     })    
 }

@@ -32,10 +32,17 @@ module.exports.getPrices = function(ocn) {
   })
 }
 
+validateTargetVsPrices = function(bw_list, target) {
+    var retval = false
+    bw_list.forEach(function(bw) { if (bw.bw >= target) retval = true })
+    return retval
+}
+
 module.exports.getPriceId = function(ocn, bw) {
   logger.debug('looking for a price')
   return new Promise((resolve, reject) => {
-    initPrices(ocn)
+      initPrices(ocn)
+      if(!validateTargetVsPrices(bw_to_price, bw)) reject({status: 400, message:'Invalid target bandwidth: '+bw})
     var sorted_bw = bw_to_price.sort((a,b) => { return a.bw - b.bw })
     var closest_price = sorted_bw.find((element) => { return element.bw >= bw })
     logger.info('Bandwidth '+bw+' corresponds to price id '+closest_price.price_id)
